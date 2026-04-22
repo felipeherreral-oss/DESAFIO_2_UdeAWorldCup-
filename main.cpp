@@ -1,61 +1,68 @@
 #include <iostream>
 #include "estructuras/ArregloDinamico.h"
 #include "estructuras/Fecha.h"
+#include "estadisticas/EstHistEquipo.h"
+#include "estadisticas/EstHistJugador.h"
+#include "estadisticas/EstPartidoJugador.h"
+#include "estadisticas/EstPartidoEquipo.h"
 
 using namespace std;
 
 int main() {
 
-    cout << "=== PRUEBA 1: ArregloDinamico ===" << endl;
+    cout << "=== PRUEBA EstHistEquipo ===" << endl;
+    EstHistEquipo eqHist;
+    eqHist.setGolesAFavor(30);
+    eqHist.setGolesEnContra(15);
+    eqHist.setPartidosJugados(10);
+    eqHist.setPartidosGanados(7);
+    eqHist.setPartidosEmpatados(2);
+    eqHist.setPartidosPerdidos(1);
+    eqHist.imprimir(); cout << endl;
+    cout << "PromGF: " << eqHist.getPromedioGolesAFavor()   << endl; // 3.0
+    cout << "PromGC: " << eqHist.getPromedioGolesEnContra() << endl; // 1.5
 
-    ArregloDinamico<int> arr(5);
-    arr.agregar(10);
-    arr.agregar(20);
-    arr.agregar(30);
+    // Simular un partido ganado 2-1
+    eqHist.actualizarConPartido(2, 1, true, false, 1, 0, 2);
+    cout << "Tras actualizar: "; eqHist.imprimir(); cout << endl;
+    // PJ debe ser 11, PG debe ser 8, GF debe ser 32
 
-    cout << "Tamanio: " << arr.getTamanio() << endl;  // Esperado: 3
-    cout << "Elemento [0]: " << arr[0] << endl;        // Esperado: 10
-    cout << "Elemento [2]: " << arr[2] << endl;        // Esperado: 30
+    cout << "\n=== PRUEBA EstHistJugador ===" << endl;
+    EstHistJugador jugHist;
+    jugHist.setGoles(5);
+    jugHist.imprimir(); cout << endl;
+    jugHist.actualizarConPartido(2, 90, 1, 0, 1, 0);
+    jugHist.imprimir(); cout << endl;
+    // Goles debe ser 7, PJ debe ser 1, minutos 90
 
-    // Prueba constructor de copia
-    ArregloDinamico<int> copia(arr);
-    copia[0] = 99;
-    cout << "Original [0] tras modificar copia: " << arr[0] << endl; // Debe seguir siendo 10
-    cout << "Copia [0]: " << copia[0] << endl;                        // Debe ser 99
+    cout << "\n=== PRUEBA EstPartidoJugador ===" << endl;
+    EstPartidoJugador epj(10); // camiseta 10
+    epj.setGoles(1);
+    epj.setTarjetasAmarillas(1);
+    epj.setFaltas(2);
+    epj.imprimir(); cout << endl;
 
-    cout << "\n=== PRUEBA 2: Fecha ===" << endl;
+    cout << "\n=== PRUEBA EstPartidoEquipo ===" << endl;
+    EstPartidoEquipo epe;
+    epe.setGolesAFavor(3);
+    epe.setGolesEnContra(1);
+    epe.setPosesion(62.5);
 
-    Fecha f1(20, 6, 2026);
-    Fecha f2(25, 6, 2026);
-
-    cout << "Fecha 1: "; f1.imprimir(); cout << endl;
-    cout << "Fecha 2: "; f2.imprimir(); cout << endl;
-
-    // Prueba operador
-    if (f1 < f2)
-        cout << "f1 es anterior a f2: CORRECTO" << endl;
-
-    // Prueba operador + (sumar días)
-    Fecha f3 = f1 + 5;
-    cout << "f1 + 5 dias = "; f3.imprimir(); cout << endl; // Esperado: 25/06/2026
-
-    // Prueba operador - (diferencia)
-    int diff = f2 - f1;
-    cout << "Diferencia f2 - f1 = " << diff << " dias" << endl; // Esperado: 5
-
-    cout << "\n=== PRUEBA 3: ArregloDinamico de Fechas ===" << endl;
-
-    ArregloDinamico<Fecha> fechas(3);
-    fechas.agregar(Fecha(20, 6, 2026));
-    fechas.agregar(Fecha(23, 6, 2026));
-    fechas.agregar(Fecha(26, 6, 2026));
-
-    for (int i = 0; i < fechas.getTamanio(); i++) {
-        cout << "Fecha " << i << ": ";
-        fechas[i].imprimir();
-        cout << endl;
+    for (int i = 1; i <= 11; i++) {
+        EstPartidoJugador j(i);
+        if (i == 9) j.setGoles(2);
+        if (i == 7) j.setGoles(1);
+        epe.agregarJugador(j);
     }
 
-    cout << "\nTodas las pruebas completadas." << endl;
+    epe.imprimir();
+
+    // Prueba constructor de copia de EstPartidoEquipo
+    EstPartidoEquipo copia(epe);
+    copia.setGolesAFavor(99);
+    cout << "Original GF tras modificar copia: "
+         << epe.getGolesAFavor() << endl; // Debe ser 3, no 99
+
+    cout << "\nTodas las pruebas de estadisticas completadas." << endl;
     return 0;
 }
