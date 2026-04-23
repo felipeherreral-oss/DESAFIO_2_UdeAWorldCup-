@@ -1,68 +1,56 @@
 #include <iostream>
 #include "estructuras/ArregloDinamico.h"
-#include "estructuras/Fecha.h"
-#include "estadisticas/EstHistEquipo.h"
-#include "estadisticas/EstHistJugador.h"
-#include "estadisticas/EstPartidoJugador.h"
-#include "estadisticas/EstPartidoEquipo.h"
-
+#include "entidades/Equipo.h"
+#include "persistencia/GestorArchivos.h"
 using namespace std;
 
 int main() {
 
-    cout << "=== PRUEBA EstHistEquipo ===" << endl;
-    EstHistEquipo eqHist;
-    eqHist.setGolesAFavor(30);
-    eqHist.setGolesEnContra(15);
-    eqHist.setPartidosJugados(10);
-    eqHist.setPartidosGanados(7);
-    eqHist.setPartidosEmpatados(2);
-    eqHist.setPartidosPerdidos(1);
-    eqHist.imprimir(); cout << endl;
-    cout << "PromGF: " << eqHist.getPromedioGolesAFavor()   << endl; // 3.0
-    cout << "PromGC: " << eqHist.getPromedioGolesEnContra() << endl; // 1.5
+    cout << "=== PRUEBA GestorArchivos ===" << endl;
 
-    // Simular un partido ganado 2-1
-    eqHist.actualizarConPartido(2, 1, true, false, 1, 0, 2);
-    cout << "Tras actualizar: "; eqHist.imprimir(); cout << endl;
-    // PJ debe ser 11, PG debe ser 8, GF debe ser 32
+    ArregloDinamico<Equipo> equipos(48);
 
-    cout << "\n=== PRUEBA EstHistJugador ===" << endl;
-    EstHistJugador jugHist;
-    jugHist.setGoles(5);
-    jugHist.imprimir(); cout << endl;
-    jugHist.actualizarConPartido(2, 90, 1, 0, 1, 0);
-    jugHist.imprimir(); cout << endl;
-    // Goles debe ser 7, PJ debe ser 1, minutos 90
+    // Ajusta la ruta según tu proyecto
+    GestorArchivos::cargarEquiposDesdeCSV(equipos,
+                                          "datos/selecciones_clasificadas_mundial.csv");
 
-    cout << "\n=== PRUEBA EstPartidoJugador ===" << endl;
-    EstPartidoJugador epj(10); // camiseta 10
-    epj.setGoles(1);
-    epj.setTarjetasAmarillas(1);
-    epj.setFaltas(2);
-    epj.imprimir(); cout << endl;
+    cout << "Total equipos: " << equipos.getTamanio() << endl; // 48
 
-    cout << "\n=== PRUEBA EstPartidoEquipo ===" << endl;
-    EstPartidoEquipo epe;
-    epe.setGolesAFavor(3);
-    epe.setGolesEnContra(1);
-    epe.setPosesion(62.5);
-
-    for (int i = 1; i <= 11; i++) {
-        EstPartidoJugador j(i);
-        if (i == 9) j.setGoles(2);
-        if (i == 7) j.setGoles(1);
-        epe.agregarJugador(j);
+    // Mostrar primeros 5 equipos
+    cout << "\n--- Primeros 5 equipos ---" << endl;
+    for (int i = 0; i < 5; i++) {
+        equipos[i].imprimir();
+        cout << " | PJ:" << equipos[i].getEstHistorica().getPartidosJugados()
+             << " GF:"   << equipos[i].getEstHistorica().getGolesAFavor()
+             << " GC:"   << equipos[i].getEstHistorica().getGolesEnContra()
+             << endl;
     }
 
-    epe.imprimir();
+    // Verificar jugadores del primer equipo
+    cout << "\n--- Jugadores de " << equipos[0].getPais() << " ---" << endl;
+    int totalGoles = 0;
+    for (int j = 0; j < equipos[0].getPlantilla().getTamanio(); j++) {
+        totalGoles += equipos[0].getPlantilla()[j].getEstHistorica().getGoles();
+    }
+    cout << "Total jugadores: "
+         << equipos[0].getPlantilla().getTamanio() << endl; // 26
+    cout << "Total goles repartidos: " << totalGoles
+         << " (debe ser "
+         << equipos[0].getEstHistorica().getGolesAFavor()
+         << ")" << endl;
 
-    // Prueba constructor de copia de EstPartidoEquipo
-    EstPartidoEquipo copia(epe);
-    copia.setGolesAFavor(99);
-    cout << "Original GF tras modificar copia: "
-         << epe.getGolesAFavor() << endl; // Debe ser 3, no 99
+    // Guardar jugadores
+    cout << "\n--- Guardando jugadores ---" << endl;
+    GestorArchivos::guardarJugadores(equipos, "datos/jugadores.csv");
 
-    cout << "\nTodas las pruebas de estadisticas completadas." << endl;
+    // Recargar jugadores
+    cout << "\n--- Recargando jugadores ---" << endl;
+    GestorArchivos::cargarJugadores(equipos, "datos/jugadores.csv");
+    cout << "Primer jugador de "
+         << equipos[0].getPais() << ": "
+         << equipos[0].getPlantilla()[0].getNombre() << " "
+         << equipos[0].getPlantilla()[0].getApellido() << endl;
+
+    cout << "\nPrueba GestorArchivos completada." << endl;
     return 0;
 }
