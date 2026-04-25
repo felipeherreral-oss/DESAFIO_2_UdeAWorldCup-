@@ -4,46 +4,60 @@
 #include "estructuras/ArregloDinamico.h"
 #include "entidades/Equipo.h"
 #include "persistencia/GestorArchivos.h"
-#include "simulacion/Partido.h"
+#include "simulacion/Grupo.h"
 using namespace std;
 
 int main() {
-    srand(time(nullptr)); // semilla aleatoria
+    srand(time(nullptr));
 
-    // Cargar equipos reales
     ArregloDinamico<Equipo> equipos(48);
     GestorArchivos::cargarEquiposDesdeCSV(equipos,
                                           "datos/selecciones_clasificadas_mundial.csv");
 
-    cout << "\n=== PRUEBA Partido ===" << endl;
+    cout << "\n=== PRUEBA Grupo ===" << endl;
 
-    // Partido Argentina vs France
-    Partido p(
-        Fecha(20, 6, 2026),
-        "nombreSede",
-        "codArbitro1", "codArbitro2", "codArbitro3",
-        &equipos[0],  // France (ranking 1)
-        &equipos[2]   // Argentina (ranking 3)
-        );
+    // Crear grupo A con 4 equipos reales
+    Grupo grupoA('A');
+    grupoA.agregarEquipo(&equipos[0]);  // France
+    grupoA.agregarEquipo(&equipos[2]);  // Argentina
+    grupoA.agregarEquipo(&equipos[5]);  // Brazil
+    grupoA.agregarEquipo(&equipos[10]); // Morocco
 
-    cout << "Antes de simular:" << endl;
-    p.imprimir();
+    // Array global de partidos por día (19 días)
+    int partidosPorDia[19] = {0};
 
-    p.simular();
+    grupoA.generarPartidos(Fecha(20, 6, 2026), partidosPorDia, 19);
 
-    cout << "\nDespues de simular:" << endl;
-    p.imprimir();
-    p.imprimirGoleadores();
+    cout << "Partidos generados: "
+         << grupoA.getPartidos().getTamanio() << endl; // 6
 
-    // Verificar que los historicos se actualizaron
-    p.actualizarHistoricos();
-    cout << "\nHistoricos France tras partido:" << endl;
-    equipos[0].getEstHistorica().imprimir(); cout << endl;
-    cout << "Historicos Argentina tras partido:" << endl;
-    equipos[2].getEstHistorica().imprimir(); cout << endl;
+    // Verificar fechas
+    cout << "Fechas asignadas:" << endl;
+    for (int i = 0; i < grupoA.getPartidos().getTamanio(); i++) {
+        cout << "  Partido " << i+1 << ": ";
+        grupoA.getPartidos()[i].getFecha().imprimir();
+        cout << " — "
+             << grupoA.getPartidos()[i].getEquipo1()->getPais()
+             << " vs "
+             << grupoA.getPartidos()[i].getEquipo2()->getPais()
+             << endl;
+    }
 
-    // Usar operator
-    cout << "\nOperador <<: " << p << endl;
+    // Simular
+    grupoA.simularPartidos();
+    grupoA.construirTabla();
+
+    // Imprimir tabla
+    grupoA.imprimirTabla();
+
+    // Imprimir partidos con goleadores
+    grupoA.imprimirPartidos();
+
+    cout << "\nClasificados:" << endl;
+    cout << "1ro: " << grupoA.getPrimero()->getPais() << endl;
+    cout << "2do: " << grupoA.getSegundo()->getPais() << endl;
+    cout << "3ro: " << grupoA.getTercero()->getPais() << endl;
+    cout << "4to: " << grupoA.getCuarto()->getPais()  << endl;
 
     return 0;
 }
