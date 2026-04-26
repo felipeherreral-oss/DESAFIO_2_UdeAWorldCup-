@@ -102,10 +102,8 @@ void Grupo::agregarEquipo(Equipo* eq) {
 }
 
 // ─── Generación de partidos ────────────────────────────────────────
-
-void Grupo::generarPartidos(const Fecha& fechaInicio,
-                            int* partidosPorDia,
-                            int maxDias) {
+void Grupo::generarPartidos(int diaInicio, int mesInicio, int anioInicio,
+                            int* partidosPorDia, int maxDias) {
     int pares[6][2] = {
         {0,1},{0,2},{0,3},
         {1,2},{1,3},{2,3}
@@ -126,12 +124,14 @@ void Grupo::generarPartidos(const Fecha& fechaInicio,
 
         if (diaValido == -1) diaValido = maxDias - 1;
 
-        Partido partido(
-            fechaInicio + diaValido,
-            "nombreSede",
-            "codArbitro1","codArbitro2","codArbitro3",
-            equipos[idxA], equipos[idxB]
-            );
+        // Calcular fecha sumando días al inicio
+        int d = diaInicio, m = mesInicio, a = anioInicio;
+        sumarDias(d, m, a, diaValido);
+
+        Partido partido(d, m, a,
+                        "nombreSede",
+                        "codArbitro1","codArbitro2","codArbitro3",
+                        equipos[idxA], equipos[idxB]);
 
         partidos.agregar(partido);
         partidosPorDia[diaValido]++;
@@ -260,5 +260,16 @@ void Grupo::imprimirPartidos() const {
         partidos[i].imprimir();
         partidos[i].imprimirGoleadores();
         cout << "---" << endl;
+    }
+
+}
+
+void Grupo::sumarDias(int& d, int& m, int& a, int dias) const {
+    int diasPorMes[] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
+    d += dias;
+    while (d > diasPorMes[m]) {
+        d -= diasPorMes[m];
+        m++;
+        if (m > 12) { m = 1; a++; }
     }
 }

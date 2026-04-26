@@ -28,6 +28,7 @@ private:
     int  getDiferenciaGoles(int idx) const;
     bool esMejorQue(int idxA, int idxB) const;
     void ordenarTabla();
+    void sumarDias(int& d, int& m, int& a, int dias) const;
 
 public:
     Grupo();
@@ -37,10 +38,9 @@ public:
 
     void agregarEquipo(Equipo* eq);
 
-    void generarPartidos(const Fecha& fechaInicio,
+    void generarPartidos(int diaInicio, int mesInicio, int anioInicio,
                          int* partidosPorDia,
                          int maxDias);
-
     void simularPartidos();
     void construirTabla();
 
