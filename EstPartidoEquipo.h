@@ -26,6 +26,7 @@ public:
 
     void agregarJugador(const EstPartidoJugador& j);
     ArregloDinamico<EstPartidoJugador>& getJugadores();
+    const ArregloDinamico<EstPartidoJugador>& getJugadores() const;
 
     void imprimir() const;
 };

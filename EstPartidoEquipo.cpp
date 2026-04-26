@@ -29,6 +29,10 @@ ArregloDinamico<EstPartidoJugador>& EstPartidoEquipo::getJugadores() {
     return jugadoresConvocados;
 }
 
+const ArregloDinamico<EstPartidoJugador>& EstPartidoEquipo::getJugadores() const {
+    return jugadoresConvocados;
+}
+
 void EstPartidoEquipo::imprimir() const {
     cout << "GF:" << golesAFavor
          << " GC:" << golesEnContra
