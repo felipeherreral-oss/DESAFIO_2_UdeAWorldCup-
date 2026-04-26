@@ -320,14 +320,19 @@ void Partido::imprimir() const {
              << statsEq1.getGolesAFavor() << " - "
              << statsEq2.getGolesAFavor() << endl;
         cout << "Posesion: "
-             << equipo1->getPais() << " " << statsEq1.getPosesion() << "% | "
-             << equipo2->getPais() << " " << statsEq2.getPosesion() << "%" << endl;
+             << equipo1->getPais() << " "
+             << statsEq1.getPosesion() << "% | "
+             << equipo2->getPais() << " "
+             << statsEq2.getPosesion() << "%" << endl;
+
         if (ganador)
             cout << "Ganador: " << ganador->getPais() << endl;
         else
             cout << "Resultado: EMPATE" << endl;
+
         if (fueAProrrgoa)
-            cout << "(Se fue a prorroga)" << endl;
+            cout << "(Definido en prorroga - 120 min)" << endl;
+
     } else {
         cout << "(Partido no jugado aun)" << endl;
     }
@@ -348,6 +353,8 @@ void Partido::imprimirGoleadores() const {
                  << "(" << statsEq2.getJugadores()[i].getGoles() << ") ";
     cout << endl;
 }
+
+void Partido::setFueAProrroga(bool p) { fueAProrrgoa = p; }
 
 ostream& operator<<(ostream& os, const Partido& p) {
     os << p.equipo1->getPais() << " vs " << p.equipo2->getPais()

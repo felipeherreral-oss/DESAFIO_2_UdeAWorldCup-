@@ -3,97 +3,134 @@
 #include <cstdlib>
 using namespace std;
 
-// ─── EntradaTabla ──────────────────────────────────────────────────
-
-EntradaTabla::EntradaTabla()
-    : equipo(nullptr), puntos(0), golesAFavor(0),
-    golesEnContra(0), partidosJugados(0),
-    partidosGanados(0), partidosEmpatados(0), partidosPerdidos(0) {}
-
-EntradaTabla::EntradaTabla(Equipo* eq)
-    : equipo(eq), puntos(0), golesAFavor(0),
-    golesEnContra(0), partidosJugados(0),
-    partidosGanados(0), partidosEmpatados(0), partidosPerdidos(0) {}
-
-int EntradaTabla::getDiferenciaGoles() const {
-    return golesAFavor - golesEnContra;
-}
-
-// ─── Grupo ─────────────────────────────────────────────────────────
+// ─── Constructores ─────────────────────────────────────────────────
 
 Grupo::Grupo()
-    : identificador('?'), equipos(4), partidos(6), tabla(4) {}
+    : identificador('?'), equipos(4), partidos(6) {
+    for (int i = 0; i < 4; i++) {
+        puntos[i] = golesAFavor[i] = golesEnContra[i] = 0;
+        partidosJugados[i] = partidosGanados[i] = 0;
+        partidosEmpatados[i] = partidosPerdidos[i] = 0;
+        ordenTabla[i] = i;
+    }
+}
 
 Grupo::Grupo(char id)
-    : identificador(id), equipos(4), partidos(6), tabla(4) {}
+    : identificador(id), equipos(4), partidos(6) {
+    for (int i = 0; i < 4; i++) {
+        puntos[i] = golesAFavor[i] = golesEnContra[i] = 0;
+        partidosJugados[i] = partidosGanados[i] = 0;
+        partidosEmpatados[i] = partidosPerdidos[i] = 0;
+        ordenTabla[i] = i;
+    }
+}
+
+Grupo::Grupo(const Grupo& otro)
+    : identificador(otro.identificador),
+    equipos(otro.equipos),
+    partidos(otro.partidos) {
+    for (int i = 0; i < 4; i++) {
+        puntos[i]           = otro.puntos[i];
+        golesAFavor[i]      = otro.golesAFavor[i];
+        golesEnContra[i]    = otro.golesEnContra[i];
+        partidosJugados[i]  = otro.partidosJugados[i];
+        partidosGanados[i]  = otro.partidosGanados[i];
+        partidosEmpatados[i]= otro.partidosEmpatados[i];
+        partidosPerdidos[i] = otro.partidosPerdidos[i];
+        ordenTabla[i]       = otro.ordenTabla[i];
+    }
+}
+
+Grupo& Grupo::operator=(const Grupo& otro) {
+    if (this != &otro) {
+        identificador = otro.identificador;
+        equipos       = otro.equipos;
+        partidos      = otro.partidos;
+        for (int i = 0; i < 4; i++) {
+            puntos[i]           = otro.puntos[i];
+            golesAFavor[i]      = otro.golesAFavor[i];
+            golesEnContra[i]    = otro.golesEnContra[i];
+            partidosJugados[i]  = otro.partidosJugados[i];
+            partidosGanados[i]  = otro.partidosGanados[i];
+            partidosEmpatados[i]= otro.partidosEmpatados[i];
+            partidosPerdidos[i] = otro.partidosPerdidos[i];
+            ordenTabla[i]       = otro.ordenTabla[i];
+        }
+    }
+    return *this;
+}
+
+// ─── Utilidades privadas ───────────────────────────────────────────
+
+void Grupo::reiniciarTabla() {
+    for (int i = 0; i < 4; i++) {
+        puntos[i] = golesAFavor[i] = golesEnContra[i] = 0;
+        partidosJugados[i] = partidosGanados[i] = 0;
+        partidosEmpatados[i] = partidosPerdidos[i] = 0;
+        ordenTabla[i] = i;
+    }
+}
+
+int Grupo::getDiferenciaGoles(int idx) const {
+    return golesAFavor[idx] - golesEnContra[idx];
+}
+
+bool Grupo::esMejorQue(int idxA, int idxB) const {
+    if (puntos[idxA] != puntos[idxB])
+        return puntos[idxA] > puntos[idxB];
+    if (getDiferenciaGoles(idxA) != getDiferenciaGoles(idxB))
+        return getDiferenciaGoles(idxA) > getDiferenciaGoles(idxB);
+    if (golesAFavor[idxA] != golesAFavor[idxB])
+        return golesAFavor[idxA] > golesAFavor[idxB];
+    return (rand() % 2) == 0; // sorteo
+}
+
+void Grupo::ordenarTabla() {
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3 - i; j++)
+            if (!esMejorQue(ordenTabla[j], ordenTabla[j+1])) {
+                int tmp          = ordenTabla[j];
+                ordenTabla[j]    = ordenTabla[j+1];
+                ordenTabla[j+1]  = tmp;
+            }
+}
+
+// ─── Gestión de equipos ────────────────────────────────────────────
 
 void Grupo::agregarEquipo(Equipo* eq) {
     equipos.agregar(eq);
-    tabla.agregar(EntradaTabla(eq));
 }
 
-char Grupo::getIdentificador() const { return identificador; }
-
-ArregloDinamico<Equipo*>&      Grupo::getEquipos()  { return equipos; }
-ArregloDinamico<Partido>&      Grupo::getPartidos() { return partidos; }
-ArregloDinamico<EntradaTabla>& Grupo::getTabla()    { return tabla; }
-
-const ArregloDinamico<Equipo*>& Grupo::getEquipos() const {
-    return equipos;
-}
-
-const ArregloDinamico<Partido>& Grupo::getPartidos() const {
-    return partidos;
-}
-
-const ArregloDinamico<EntradaTabla>& Grupo::getTabla() const {
-    return tabla;
-}
-
-// ─── Generar partidos con restricciones de fecha ───────────────────
+// ─── Generación de partidos ────────────────────────────────────────
 
 void Grupo::generarPartidos(const Fecha& fechaInicio,
                             int* partidosPorDia,
                             int maxDias) {
-    // Parejas round-robin: (0,1),(0,2),(0,3),(1,2),(1,3),(2,3)
     int pares[6][2] = {
         {0,1},{0,2},{0,3},
         {1,2},{1,3},{2,3}
     };
-
-    // Último día jugado por cada equipo (índice desde fechaInicio)
-    int ultimoDiaEquipo[4] = {-99, -99, -99, -99};
+    int ultimoDiaEquipo[4] = {-99,-99,-99,-99};
 
     for (int p = 0; p < 6; p++) {
         int idxA = pares[p][0];
         int idxB = pares[p][1];
-
-        // Buscar el primer día válido para este partido
         int diaValido = -1;
+
         for (int d = 0; d < maxDias; d++) {
-            // Restricción 1: max 4 partidos por día (global)
             if (partidosPorDia[d] >= 4) continue;
-
-            // Restricción 2: ningún equipo juega con menos de 3 días
-            bool equipoAlibre = (d - ultimoDiaEquipo[idxA]) >= 3;
-            bool equipoBlibre = (d - ultimoDiaEquipo[idxB]) >= 3;
-
-            if (equipoAlibre && equipoBlibre) {
-                diaValido = d;
-                break;
-            }
+            bool aLibre = (d - ultimoDiaEquipo[idxA]) >= 3;
+            bool bLibre = (d - ultimoDiaEquipo[idxB]) >= 3;
+            if (aLibre && bLibre) { diaValido = d; break; }
         }
 
-        if (diaValido == -1) diaValido = maxDias - 1; // fallback
-
-        Fecha fechaPartido = fechaInicio + diaValido;
+        if (diaValido == -1) diaValido = maxDias - 1;
 
         Partido partido(
-            fechaPartido,
+            fechaInicio + diaValido,
             "nombreSede",
-            "codArbitro1", "codArbitro2", "codArbitro3",
-            equipos[idxA],
-            equipos[idxB]
+            "codArbitro1","codArbitro2","codArbitro3",
+            equipos[idxA], equipos[idxB]
             );
 
         partidos.agregar(partido);
@@ -103,7 +140,7 @@ void Grupo::generarPartidos(const Fecha& fechaInicio,
     }
 }
 
-// ─── Simular todos los partidos ────────────────────────────────────
+// ─── Simulación ────────────────────────────────────────────────────
 
 void Grupo::simularPartidos() {
     for (int i = 0; i < partidos.getTamanio(); i++) {
@@ -112,21 +149,11 @@ void Grupo::simularPartidos() {
     }
 }
 
-// ─── Construir tabla de clasificación ─────────────────────────────
+// ─── Tabla de clasificación ────────────────────────────────────────
 
 void Grupo::construirTabla() {
-    // Reiniciar tabla
-    for (int i = 0; i < tabla.getTamanio(); i++) {
-        tabla[i].puntos          = 0;
-        tabla[i].golesAFavor     = 0;
-        tabla[i].golesEnContra   = 0;
-        tabla[i].partidosJugados = 0;
-        tabla[i].partidosGanados = 0;
-        tabla[i].partidosEmpatados = 0;
-        tabla[i].partidosPerdidos  = 0;
-    }
+    reiniciarTabla();
 
-    // Acumular resultados de cada partido
     for (int p = 0; p < partidos.getTamanio(); p++) {
         Partido& partido = partidos[p];
         if (!partido.getFueJugado()) continue;
@@ -136,64 +163,72 @@ void Grupo::construirTabla() {
         int     g1  = partido.getStatsEq1().getGolesAFavor();
         int     g2  = partido.getStatsEq2().getGolesAFavor();
 
-        // Buscar en la tabla
-        for (int i = 0; i < tabla.getTamanio(); i++) {
-            if (tabla[i].equipo == eq1) {
-                tabla[i].golesAFavor   += g1;
-                tabla[i].golesEnContra += g2;
-                tabla[i].partidosJugados++;
-                if (g1 > g2) { tabla[i].puntos += 3; tabla[i].partidosGanados++; }
-                else if (g1 == g2) { tabla[i].puntos += 1; tabla[i].partidosEmpatados++; }
-                else tabla[i].partidosPerdidos++;
-            }
-            if (tabla[i].equipo == eq2) {
-                tabla[i].golesAFavor   += g2;
-                tabla[i].golesEnContra += g1;
-                tabla[i].partidosJugados++;
-                if (g2 > g1) { tabla[i].puntos += 3; tabla[i].partidosGanados++; }
-                else if (g1 == g2) { tabla[i].puntos += 1; tabla[i].partidosEmpatados++; }
-                else tabla[i].partidosPerdidos++;
-            }
+        // Encontrar índice de cada equipo en el arreglo
+        int i1 = -1, i2 = -1;
+        for (int i = 0; i < equipos.getTamanio(); i++) {
+            if (equipos[i] == eq1) i1 = i;
+            if (equipos[i] == eq2) i2 = i;
         }
+        if (i1 < 0 || i2 < 0) continue;
+
+        // Actualizar estadísticas equipo 1
+        golesAFavor[i1]   += g1;
+        golesEnContra[i1] += g2;
+        partidosJugados[i1]++;
+        if (g1 > g2) { puntos[i1] += 3; partidosGanados[i1]++; }
+        else if (g1 == g2) { puntos[i1]++; partidosEmpatados[i1]++; }
+        else partidosPerdidos[i1]++;
+
+        // Actualizar estadísticas equipo 2
+        golesAFavor[i2]   += g2;
+        golesEnContra[i2] += g1;
+        partidosJugados[i2]++;
+        if (g2 > g1) { puntos[i2] += 3; partidosGanados[i2]++; }
+        else if (g1 == g2) { puntos[i2]++; partidosEmpatados[i2]++; }
+        else partidosPerdidos[i2]++;
     }
 
     ordenarTabla();
 }
 
-// ─── Ordenar tabla ─────────────────────────────────────────────────
+// ─── Getters posiciones ────────────────────────────────────────────
 
-bool Grupo::esMejorQue(const EntradaTabla& a, const EntradaTabla& b) const {
-    if (a.puntos != b.puntos)
-        return a.puntos > b.puntos;
-    if (a.getDiferenciaGoles() != b.getDiferenciaGoles())
-        return a.getDiferenciaGoles() > b.getDiferenciaGoles();
-    if (a.golesAFavor != b.golesAFavor)
-        return a.golesAFavor > b.golesAFavor;
-    // Sorteo aleatorio
-    return (rand() % 2) == 0;
+char Grupo::getIdentificador() const { return identificador; }
+
+ArregloDinamico<Equipo*>& Grupo::getEquipos() { return equipos; }
+const ArregloDinamico<Equipo*>& Grupo::getEquipos() const { return equipos; }
+ArregloDinamico<Partido>& Grupo::getPartidos() { return partidos; }
+const ArregloDinamico<Partido>& Grupo::getPartidos() const { return partidos; }
+
+Equipo* Grupo::getPrimero() { construirTabla(); return equipos[ordenTabla[0]]; }
+Equipo* Grupo::getSegundo() { construirTabla(); return equipos[ordenTabla[1]]; }
+Equipo* Grupo::getTercero() { construirTabla(); return equipos[ordenTabla[2]]; }
+Equipo* Grupo::getCuarto()  { construirTabla(); return equipos[ordenTabla[3]]; }
+
+int Grupo::getPuntosPorPosicion(int pos) const {
+    return puntos[ordenTabla[pos]];
 }
-
-void Grupo::ordenarTabla() {
-    // Burbuja simple
-    for (int i = 0; i < tabla.getTamanio() - 1; i++)
-        for (int j = 0; j < tabla.getTamanio() - i - 1; j++)
-            if (!esMejorQue(tabla[j], tabla[j+1])) {
-                EntradaTabla temp = tabla[j];
-                tabla[j]         = tabla[j+1];
-                tabla[j+1]       = temp;
-            }
+int Grupo::getGolesAFavorPorPosicion(int pos) const {
+    return golesAFavor[ordenTabla[pos]];
 }
-
-// ─── Getters de posiciones ─────────────────────────────────────────
-
-Equipo* Grupo::getPrimero()  { construirTabla(); return tabla[0].equipo; }
-Equipo* Grupo::getSegundo()  { construirTabla(); return tabla[1].equipo; }
-Equipo* Grupo::getTercero()  { construirTabla(); return tabla[2].equipo; }
-Equipo* Grupo::getCuarto()   { construirTabla(); return tabla[3].equipo; }
-
-EntradaTabla& Grupo::getEntradaPrimero()  { return tabla[0]; }
-EntradaTabla& Grupo::getEntradaSegundo()  { return tabla[1]; }
-EntradaTabla& Grupo::getEntradaTercero()  { return tabla[2]; }
+int Grupo::getGolesEnContraPorPosicion(int pos) const {
+    return golesEnContra[ordenTabla[pos]];
+}
+int Grupo::getDiferenciaGolesPorPosicion(int pos) const {
+    return getDiferenciaGoles(ordenTabla[pos]);
+}
+int Grupo::getPartidosJugadosPorPosicion(int pos) const {
+    return partidosJugados[ordenTabla[pos]];
+}
+int Grupo::getPartidosGanadosPorPosicion(int pos) const {
+    return partidosGanados[ordenTabla[pos]];
+}
+int Grupo::getPartidosEmpatadosPorPosicion(int pos) const {
+    return partidosEmpatados[ordenTabla[pos]];
+}
+int Grupo::getPartidosPerdidosPorPosicion(int pos) const {
+    return partidosPerdidos[ordenTabla[pos]];
+}
 
 // ─── Impresión ─────────────────────────────────────────────────────
 
@@ -201,22 +236,21 @@ void Grupo::imprimirTabla() const {
     cout << "\nGRUPO " << identificador << endl;
     cout << "Equipo              PJ PG PE PP GF GC DG PTS" << endl;
     cout << "------------------------------------------------" << endl;
-    for (int i = 0; i < tabla.getTamanio(); i++) {
-        const EntradaTabla& e = tabla[i];
-        cout << e.equipo->getPais();
-        // Padding simple
+    for (int i = 0; i < 4 && i < equipos.getTamanio(); i++) {
+        int idx = ordenTabla[i];
+        const char* nombre = equipos[idx]->getPais();
+        cout << nombre;
         int len = 0;
-        const char* n = e.equipo->getPais();
-        while (n[len]) len++;
+        while (nombre[len]) len++;
         for (int s = len; s < 20; s++) cout << " ";
-        cout << e.partidosJugados    << "  "
-             << e.partidosGanados    << "  "
-             << e.partidosEmpatados  << "  "
-             << e.partidosPerdidos   << "  "
-             << e.golesAFavor        << "  "
-             << e.golesEnContra      << "  "
-             << e.getDiferenciaGoles()<< "  "
-             << e.puntos             << endl;
+        cout << partidosJugados[idx]   << "  "
+             << partidosGanados[idx]   << "  "
+             << partidosEmpatados[idx] << "  "
+             << partidosPerdidos[idx]  << "  "
+             << golesAFavor[idx]       << "  "
+             << golesEnContra[idx]     << "  "
+             << getDiferenciaGoles(idx)<< "  "
+             << puntos[idx]            << endl;
     }
 }
 

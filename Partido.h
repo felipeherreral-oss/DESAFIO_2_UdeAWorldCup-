@@ -40,6 +40,8 @@ private:
     // Selecciona 11 jugadores aleatorios de la plantilla
     void seleccionarConvocados(Equipo* eq, EstPartidoEquipo& stats);
 
+
+
 public:
     Partido();
     Partido(Fecha f, const char* sede,
@@ -63,17 +65,14 @@ public:
 
     // Simula el partido completo
     void simular();
-
     // Actualiza estadísticas históricas de equipos y jugadores
     void actualizarHistoricos();
-
     // Imprime toda la info del partido
     void imprimir() const;
-
     // Imprime solo los goleadores (número de camiseta)
     void imprimirGoleadores() const;
-
-    void setGanador(Equipo* g);
+    void setGanador(Equipo* g); 
+    void setFueAProrroga(bool p);
 
     // Sobrecarga << para imprimir con cout
     friend std::ostream& operator<<(std::ostream& os, const Partido& p);
