@@ -20,7 +20,7 @@ public:
     bool operator<=(const Fecha& otra) const;
     Fecha operator+(int dias) const;      // Sumar días
     int operator-(const Fecha& otra) const; // Diferencia en días
-
+    Fecha& operator=(const Fecha& otra);
     void imprimir() const;
 };
 

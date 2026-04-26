@@ -52,3 +52,12 @@ void Fecha::imprimir() const {
          << (mes < 10 ? "0" : "") << mes << "/"
          << anio;
 }
+
+Fecha& Fecha::operator=(const Fecha& otra) {
+    if (this != &otra) {
+        dia  = otra.dia;
+        mes  = otra.mes;
+        anio = otra.anio;
+    }
+    return *this;
+}
